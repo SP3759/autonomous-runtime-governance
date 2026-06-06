@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Allocated Wallet",
+  "description": "Short-lived cryptographically bounded transaction passport issued to an autonomous agent execution tree",
+  "type": "object",
+  "required": ["wallet_id", "execution_tree_id", "maximum_token_quantum", "ttl_seconds", "dependency_graph_hash", "issued_at", "expires_at"],
+  "properties": {
+    "wallet_id": {
+      "type": "string",
+      "description": "Unique identifier for this wallet instance",
+      "format": "uuid"
+    },
+    "execution_tree_id": {
+      "type": "string",
+      "description": "Identifier of the agent execution tree this wallet is bound to",
+      "format": "uuid"
+    },
+    "maximum_token_quantum": {
+      "type": "object",
+      "description": "Finite spending cap for this execution tree",
+      "required": ["token_limit", "cost_limit_usd"],
+      "properties": {
+        "token_limit": {
+          "type": "integer",
+          "description": "Maximum tokens consumable across the entire execution tree",
+          "minimum": 1
+        },
+        "cost_limit_usd": {
+          "type": "number",
+          "description": "Maximum spend in USD. Proxy gate terminates execution when reached.",
+          "minimum": 0.01
+        },
+        "tokens_consumed": {
+          "type": "integer",
+          "description": "Running total of tokens consumed. Updated by proxy gate.",
+          "default": 0
+        }
+      }
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "description": "Time-to-live in seconds. Wallet self-invalidates after this window regardless of task completion.",
+      "minimum": 1
+    },
+    "dependency_graph_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the allow list of authorized external models, endpoints, and cloud resource paths",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current wallet status",
+      "enum": ["ACTIVE", "EXHAUSTED", "EXPIRED", "REVOKED"],
+      "default": "ACTIVE"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "revocation_reason": {
+      "type": ["string", "null"],
+      "enum": ["CIRCUIT_BREAKER", "MANUAL", "POLICY_VIOLATION", null]
+    }
+  }
+}

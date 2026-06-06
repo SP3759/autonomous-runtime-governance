@@ -1,0 +1,40 @@
+# ARG Drift Detection Configuration
+# Monitors behavioral drift in multi-turn sessions
+# Catches sycophancy loops, reality-testing erosion, and relationship simulation drift
+
+drift_detection:
+  name: "arg-drift-detector"
+  enabled: true
+
+  # Vector drift monitoring
+  # Measures distance between model outputs and ground-truth knowledge boundary
+  vector_drift:
+    threshold: 0.85
+    # Number of consecutive turns above threshold before circuit breaker fires
+    breach_window_turns: 3
+    # Turns to evaluate for drift trend (rolling window)
+    evaluation_window_turns: 10
+
+  # Sycophancy loop detection
+  sycophancy:
+    enabled: true
+    # Measures whether model confidence calibration is shifting toward user framing
+    affirmation_ratio_threshold: 0.80
+    # Minimum session turns before sycophancy evaluation activates
+    minimum_turns: 5
+
+  # Reality-testing erosion (educational AI deployments)
+  reality_testing:
+    enabled: false  # Enable for educational AI deployments
+    factual_grounding_threshold: 0.70
+    # Triggers when model drifts from structured content toward open-ended simulation
+    simulation_drift_threshold: 0.75
+
+  actions:
+    on_threshold_breach:
+      - emit_drift_warning_event
+      - increment_drift_counter
+    on_circuit_break:
+      - terminate_session
+      - emit_circuit_breaker_event
+      - log_full_session_lineage_to_audit_ledger

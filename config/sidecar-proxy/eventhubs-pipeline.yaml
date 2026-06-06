@@ -1,0 +1,35 @@
+# ARG Sidecar Proxy - Azure Event Hubs Pipeline Configuration
+# Asynchronous telemetry stream for auditability out of band from enforcement
+
+event_hubs:
+  namespace: "${ARG_EVENTHUBS_NAMESPACE}.servicebus.windows.net"
+  connection_string: "${ARG_EVENTHUBS_CONNECTION_STRING}"
+
+hubs:
+  telemetry_stream:
+    name: "arg-telemetry-events"
+    partition_count: 12
+    message_retention_days: 7  # Extend via Capture for long-term compliance storage
+
+  circuit_breaker_events:
+    name: "arg-circuit-breaker-fired"
+    partition_count: 2
+
+  wallet_events:
+    name: "arg-wallet-lifecycle"
+    partition_count: 4
+
+producer:
+  send_timeout_seconds: 5
+  # Critical: telemetry must never block the synchronous enforcement gate
+  async: true
+
+capture:
+  # Enable for long-term audit storage to Azure Blob or Data Lake
+  enabled: true
+  storage_account: "${ARG_CAPTURE_STORAGE_ACCOUNT}"
+  container: "arg-audit-archive"
+  interval_seconds: 300
+  size_limit_bytes: 314572800  # 300MB
+
+consumer_group: "arg-audit-consumer"

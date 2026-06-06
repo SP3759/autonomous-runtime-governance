@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Telemetry Evaluation Block",
+  "description": "Vector scores, guardrail distances, drift signals, and automated policy decisions from the Orchestration Layer",
+  "type": "object",
+  "required": ["vector_drift_score", "guardrail_distance", "policy_decision"],
+  "properties": {
+    "vector_drift_score": {
+      "type": "number",
+      "description": "Distance of model output from the ground-truth knowledge boundary (0.0 = on boundary, 1.0 = maximum drift)",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "guardrail_distance": {
+      "type": "number",
+      "description": "Proximity to the nearest policy guardrail threshold",
+      "minimum": 0.0
+    },
+    "drift_threshold_breached": {
+      "type": "boolean",
+      "description": "Whether the drift threshold was exceeded at this turn"
+    },
+    "circuit_breaker_fired": {
+      "type": "boolean",
+      "description": "Whether a circuit breaker was triggered at this turn"
+    },
+    "policy_decision": {
+      "type": "string",
+      "description": "Automated policy decision by the Enforcement Layer",
+      "enum": ["PASS", "FAIL", "CIRCUIT_BREAK", "WARN"]
+    },
+    "policy_rules_evaluated": {
+      "type": "array",
+      "description": "List of policy rule IDs evaluated against this payload",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reality_testing_score": {
+      "type": ["number", "null"],
+      "description": "For educational AI: score indicating whether model is maintaining factual grounding",
+      "minimum": 0.0,
+      "maximum": 1.0
+    }
+  }
+}

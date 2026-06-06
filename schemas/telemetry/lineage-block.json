@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Telemetry Lineage Block",
+  "description": "Deterministic hash of prompt version, model weights, temperature, and parent message GUIDs for multi-turn forensics",
+  "type": "object",
+  "required": ["prompt_version_hash", "model_id", "temperature", "turn_number"],
+  "properties": {
+    "prompt_version_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the system prompt in effect at this turn",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "model_id": {
+      "type": "string",
+      "description": "Model identifier including version"
+    },
+    "model_weights_hash": {
+      "type": ["string", "null"],
+      "description": "Hash of model weights where available"
+    },
+    "temperature": {
+      "type": "number",
+      "description": "Temperature setting at time of inference",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "turn_number": {
+      "type": "integer",
+      "description": "Sequential turn number within the session",
+      "minimum": 1
+    },
+    "parent_message_guid": {
+      "type": ["string", "null"],
+      "description": "GUID of the parent message in the conversation chain",
+      "format": "uuid"
+    },
+    "message_guid": {
+      "type": "string",
+      "description": "Unique identifier for this message",
+      "format": "uuid"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+# ARG Sidecar Proxy - Apache Kafka Pipeline Configuration
+# Asynchronous telemetry stream for auditability out of band from enforcement
+
+kafka:
+  bootstrap_servers:
+    - "localhost:9092"
+  security_protocol: "SASL_SSL"
+  sasl_mechanism: "PLAIN"
+
+topics:
+  telemetry_stream:
+    name: "arg.telemetry.events"
+    partitions: 12
+    replication_factor: 3
+    retention_ms: 2592000000  # 30 days
+    cleanup_policy: "delete"
+
+  circuit_breaker_events:
+    name: "arg.circuit_breaker.fired"
+    partitions: 3
+    replication_factor: 3
+
+  wallet_events:
+    name: "arg.wallet.lifecycle"
+    partitions: 6
+    replication_factor: 3
+
+producer:
+  acks: "all"
+  retries: 3
+  batch_size: 16384
+  linger_ms: 5
+  compression_type: "snappy"
+  # Critical: telemetry events must never block the enforcement gate
+  max_block_ms: 100
+
+schema_registry:
+  url: "http://localhost:8081"
+  subject_naming_strategy: "TopicNameStrategy"
+
+replay:
+  # Retain events for retroactive compliance reconstruction
+  enabled: true
+  consumer_group: "arg.audit.replay"
+  auto_offset_reset: "earliest"

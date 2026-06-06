@@ -1,0 +1,45 @@
+# ARG Financial Circuit Breaker Configuration
+# Catches runaway agent processes before they exhaust wallet allocations
+
+financial_circuit_breaker:
+  name: "arg-financial-cb"
+  enabled: true
+
+  # Token velocity monitoring
+  velocity:
+    # Window size for velocity calculation
+    window_seconds: 60
+    # Maximum API calls per minute before circuit breaker evaluates
+    call_rate_threshold: 100
+    # Minimum calls before evaluation activates
+    minimum_sample_size: 10
+
+  # Semantic redundancy detection
+  # Catches agents passing similar context back and forth without progress
+  semantic_redundancy:
+    enabled: true
+    # Vector similarity threshold above which outputs are considered redundant
+    similarity_threshold: 0.92
+    # Number of consecutive redundant outputs before circuit breaker fires
+    consecutive_redundant_turns: 3
+
+  # Wallet depletion warning thresholds
+  wallet_depletion:
+    warn_at_percent: 75
+    critical_at_percent: 90
+    # Hard stop: proxy gate kills execution when wallet is exhausted
+    hard_stop_at_percent: 100
+
+  actions:
+    on_circuit_break:
+      - revoke_wallet_signature
+      - terminate_execution_tree
+      - emit_circuit_breaker_event
+      - log_to_audit_ledger
+    on_warn:
+      - emit_warning_event
+      - notify_orchestration_layer
+
+  # Recovery
+  cooldown_seconds: 300
+  require_manual_reset: false

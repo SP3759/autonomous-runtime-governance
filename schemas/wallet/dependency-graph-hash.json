@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Dependency Graph",
+  "description": "Cryptographic allow list restricting which external models, endpoints, and cloud resource paths an execution tree is authorized to call",
+  "type": "object",
+  "required": ["graph_id", "allowed_models", "allowed_endpoints"],
+  "properties": {
+    "graph_id": {
+      "type": "string",
+      "description": "Unique identifier for this dependency graph definition",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of this graph definition"
+    },
+    "allowed_models": {
+      "type": "array",
+      "description": "List of model identifiers the execution tree is authorized to call",
+      "items": {
+        "type": "object",
+        "required": ["model_id"],
+        "properties": {
+          "model_id": { "type": "string" },
+          "max_tokens_per_call": { "type": "integer" },
+          "temperature_ceiling": { "type": "number", "maximum": 2.0 }
+        }
+      }
+    },
+    "allowed_endpoints": {
+      "type": "array",
+      "description": "List of external endpoints the execution tree is authorized to call",
+      "items": {
+        "type": "object",
+        "required": ["url_pattern"],
+        "properties": {
+          "url_pattern": {
+            "type": "string",
+            "description": "URL or URL pattern (supports wildcards)"
+          },
+          "methods": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] }
+          },
+          "rate_limit_per_minute": { "type": "integer" }
+        }
+      }
+    },
+    "blocked_endpoints": {
+      "type": "array",
+      "description": "Explicit block list. Takes precedence over allowed_endpoints.",
+      "items": { "type": "string" }
+    }
+  }
+}

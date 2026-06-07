@@ -203,6 +203,8 @@
           "description": "The signal that caused the breaker to arm or fire",
           "enum": [
             "call_rate_exceeded",
+            "depth_fanout_detected",
+            "wallet_warn_threshold",
             "wallet_critical_threshold",
             "wallet_exhausted",
             "semantic_redundancy",

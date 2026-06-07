@@ -416,8 +416,14 @@ class AllocatedWallet(BaseModel):
         # Mission-level check
         if not self.maximum_token_quantum.can_afford(tokens, cost_usd):
             remaining = self.maximum_token_quantum.tokens_remaining
-            if remaining == 0 and self.maximum_token_quantum.burst_reserve_tokens > 0:
-                # Signal that burst reserve approval is needed
+            burst_available = (
+                self.maximum_token_quantum.burst_reserve_tokens > 0
+                and not self.maximum_token_quantum.burst_reserve_released
+            )
+            if remaining == 0 and burst_available:
+                # Halt execution and signal that burst reserve escalation is required.
+                # The wallet stays in this state until release_burst_reserve() is called
+                # or the TTL expires. All calls are blocked during this window.
                 self.status = WalletStatus.BURST_RESERVE_PENDING
                 return SpendResult(
                     approved=False,
@@ -476,8 +482,14 @@ class AllocatedWallet(BaseModel):
     ) -> None:
         """
         Release the burst reserve after explicit escalation approval.
+        Only valid when the wallet is in BURST_RESERVE_PENDING state.
         Adds an escalation entry to the authorization chain.
         """
+        if self.status != WalletStatus.BURST_RESERVE_PENDING:
+            raise ValueError(
+                f"Cannot release burst reserve: wallet is in {self.status.value} state, "
+                "expected BURST_RESERVE_PENDING"
+            )
         self.maximum_token_quantum.burst_reserve_released = True
         self.status = WalletStatus.ACTIVE
         self.purpose_classification.authorization_chain.append(

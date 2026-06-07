@@ -46,6 +46,8 @@ class BreakerState(str, Enum):
 
 class TriggerSignal(str, Enum):
     CALL_RATE_EXCEEDED = "call_rate_exceeded"
+    DEPTH_FANOUT_DETECTED = "depth_fanout_detected"
+    WALLET_WARN_THRESHOLD = "wallet_warn_threshold"
     WALLET_CRITICAL_THRESHOLD = "wallet_critical_threshold"
     WALLET_EXHAUSTED = "wallet_exhausted"
     SEMANTIC_REDUNDANCY = "semantic_redundancy"
@@ -130,6 +132,7 @@ class FinancialCircuitBreaker:
         semantic_redundancy_threshold: float = 0.92,
         consecutive_redundant_turns: int = 3,
         minimum_sample_size: int = 10,
+        depth_fanout_threshold: float = 0.7,
         on_event: Optional[Callable[[BreakerEvent], None]] = None,
     ) -> None:
         self.wallet = wallet
@@ -139,6 +142,7 @@ class FinancialCircuitBreaker:
         self.semantic_redundancy_threshold = semantic_redundancy_threshold
         self.consecutive_redundant_turns = consecutive_redundant_turns
         self.minimum_sample_size = minimum_sample_size
+        self.depth_fanout_threshold = depth_fanout_threshold
         self.on_event = on_event
 
         self._state = BreakerState.CLOSED
@@ -227,7 +231,7 @@ class FinancialCircuitBreaker:
                 )
             elif result.warn_threshold_crossed:
                 self._emit_threshold_event(
-                    TriggerSignal.WALLET_CRITICAL_THRESHOLD, now
+                    TriggerSignal.WALLET_WARN_THRESHOLD, now
                 )
         elif result.denial_reason and "EXHAUSTED" in result.denial_reason:
             self._trip(TriggerSignal.WALLET_EXHAUSTED, now)
@@ -304,9 +308,8 @@ class FinancialCircuitBreaker:
             endpoint_counts[record.endpoint] = endpoint_counts.get(record.endpoint, 0) + 1
 
         most_repeated = max(endpoint_counts.values()) if endpoint_counts else 0
-        if most_repeated >= window_size * 0.7:
-            # 70% of calls in the window are to the same endpoint
-            return TriggerSignal.CALL_RATE_EXCEEDED
+        if most_repeated >= window_size * self.depth_fanout_threshold:
+            return TriggerSignal.DEPTH_FANOUT_DETECTED
 
         return None
 

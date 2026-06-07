@@ -1,9 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ARG Allocated Wallet",
-  "description": "Short-lived cryptographically bounded transaction passport issued to an autonomous agent execution tree",
+  "version": "2.0.0",
+  "description": "Short-lived cryptographically bounded transaction passport issued to an autonomous agent execution tree. Constrains both the magnitude of spend (how much) and the authorization of spend (what for). Version 2.0 adds purpose classification for regulated-industry audit compliance.",
   "type": "object",
-  "required": ["wallet_id", "execution_tree_id", "maximum_token_quantum", "ttl_seconds", "dependency_graph_hash", "issued_at", "expires_at"],
+  "required": [
+    "wallet_id",
+    "execution_tree_id",
+    "maximum_token_quantum",
+    "purpose_classification",
+    "ttl_seconds",
+    "dependency_graph_hash",
+    "issued_at",
+    "expires_at"
+  ],
   "properties": {
     "wallet_id": {
       "type": "string",
@@ -17,7 +27,7 @@
     },
     "maximum_token_quantum": {
       "type": "object",
-      "description": "Finite spending cap for this execution tree",
+      "description": "Finite spending cap for this execution tree. The proxy gate enforces a hard stop when cost_limit_usd is reached.",
       "required": ["token_limit", "cost_limit_usd"],
       "properties": {
         "token_limit": {
@@ -32,25 +42,163 @@
         },
         "tokens_consumed": {
           "type": "integer",
-          "description": "Running total of tokens consumed. Updated by proxy gate.",
+          "description": "Running total of tokens consumed. Updated by proxy gate on each call.",
+          "default": 0,
+          "minimum": 0
+        },
+        "cost_consumed_usd": {
+          "type": "number",
+          "description": "Running total cost in USD. Updated by proxy gate on each call.",
+          "default": 0.0,
+          "minimum": 0.0
+        },
+        "burst_reserve_tokens": {
+          "type": "integer",
+          "description": "Tokens held back from the main allocation. Requires explicit escalation approval to access. Prevents an agent from consuming the full allocation before a human can intervene.",
+          "minimum": 0,
           "default": 0
+        },
+        "burst_reserve_released": {
+          "type": "boolean",
+          "description": "Whether the burst reserve has been released via an approved escalation",
+          "default": false
+        }
+      }
+    },
+    "purpose_classification": {
+      "type": "object",
+      "description": "Defines what this spend is authorized for and who approved it. Addresses the audit requirement to prove spend was authorized for the correct appropriation -- not just that it stayed within budget. A circuit breaker constrains magnitude. Purpose classification proves intent.",
+      "required": [
+        "appropriation_id",
+        "intent_declaration",
+        "authorization_chain"
+      ],
+      "properties": {
+        "appropriation_id": {
+          "type": "string",
+          "description": "Identifier of the authorized purpose bucket this spend draws from. Maps to your cost center, project code, or compliance program. An agent that stays within token budget but spends against the wrong appropriation_id is a compliance violation."
+        },
+        "intent_declaration": {
+          "type": "string",
+          "description": "Human-readable statement of what this agent execution is authorized to do. Declared at wallet issuance time, before execution begins. The audit trail verifies the actual spend against this declared intent."
+        },
+        "task_category": {
+          "type": "string",
+          "description": "Controlled vocabulary for the type of work authorized",
+          "enum": [
+            "data_retrieval",
+            "content_generation",
+            "code_execution",
+            "external_api_orchestration",
+            "multi_agent_delegation",
+            "research",
+            "analysis",
+            "customer_interaction",
+            "internal_tooling",
+            "other"
+          ]
+        },
+        "authorization_chain": {
+          "type": "array",
+          "description": "Ordered list of approvals that authorized this wallet. Each entry records who or what approved this purpose, and when. The first entry is the originating authorization. Subsequent entries record escalations.",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["authorizer_id", "authorizer_type", "authorized_at"],
+            "properties": {
+              "authorizer_id": {
+                "type": "string",
+                "description": "Identity of the authorizer. Human user ID, service principal, or policy rule ID."
+              },
+              "authorizer_type": {
+                "type": "string",
+                "description": "Type of authorizer",
+                "enum": ["human", "policy_rule", "service_principal", "escalation_approval"]
+              },
+              "authorized_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "UTC timestamp of authorization"
+              },
+              "authorization_ttl_seconds": {
+                "type": "integer",
+                "description": "How long this authorization is valid. Wallet expires when the shortest TTL in the chain is reached.",
+                "minimum": 1
+              },
+              "authorization_scope": {
+                "type": "string",
+                "description": "What this authorization specifically permits. Narrows the intent_declaration for this step in the chain."
+              }
+            }
+          }
+        },
+        "operation_wallets": {
+          "type": "array",
+          "description": "Optional subdivision of the mission budget by tool call category. Prevents any single operation type from consuming the full allocation. If omitted, the full maximum_token_quantum applies to all operation types.",
+          "items": {
+            "type": "object",
+            "required": ["operation_type", "token_limit"],
+            "properties": {
+              "operation_type": {
+                "type": "string",
+                "description": "The category of tool call this sub-wallet governs",
+                "enum": [
+                  "llm_inference",
+                  "web_search",
+                  "code_execution",
+                  "database_query",
+                  "external_api",
+                  "file_io",
+                  "sub_agent_delegation",
+                  "other"
+                ]
+              },
+              "token_limit": {
+                "type": "integer",
+                "description": "Maximum tokens this operation type may consume from the parent wallet",
+                "minimum": 1
+              },
+              "cost_limit_usd": {
+                "type": "number",
+                "description": "Maximum cost in USD for this operation type",
+                "minimum": 0.0
+              },
+              "tokens_consumed": {
+                "type": "integer",
+                "description": "Running total for this operation type",
+                "default": 0,
+                "minimum": 0
+              },
+              "call_count": {
+                "type": "integer",
+                "description": "Number of calls made under this operation wallet",
+                "default": 0,
+                "minimum": 0
+              },
+              "max_calls_per_minute": {
+                "type": "integer",
+                "description": "Rate limit for this operation type. The circuit breaker uses this to detect fan-out.",
+                "minimum": 1
+              }
+            }
+          }
         }
       }
     },
     "ttl_seconds": {
       "type": "integer",
-      "description": "Time-to-live in seconds. Wallet self-invalidates after this window regardless of task completion.",
+      "description": "Time-to-live in seconds. Wallet self-invalidates after this window regardless of task completion. A stalled agent cannot hold a wallet open indefinitely.",
       "minimum": 1
     },
     "dependency_graph_hash": {
       "type": "string",
-      "description": "SHA-256 hash of the allow list of authorized external models, endpoints, and cloud resource paths",
+      "description": "SHA-256 hash of the allow list of authorized external models, endpoints, and cloud resource paths. Any call to an endpoint not in this hash is blocked by the proxy gate.",
       "pattern": "^[a-f0-9]{64}$"
     },
     "status": {
       "type": "string",
       "description": "Current wallet status",
-      "enum": ["ACTIVE", "EXHAUSTED", "EXPIRED", "REVOKED"],
+      "enum": ["ACTIVE", "EXHAUSTED", "EXPIRED", "REVOKED", "BURST_RESERVE_PENDING"],
       "default": "ACTIVE"
     },
     "issued_at": {
@@ -63,11 +211,13 @@
     },
     "revoked_at": {
       "type": ["string", "null"],
-      "format": "date-time"
+      "format": "date-time",
+      "default": null
     },
     "revocation_reason": {
       "type": ["string", "null"],
-      "enum": ["CIRCUIT_BREAKER", "MANUAL", "POLICY_VIOLATION", null]
+      "enum": ["CIRCUIT_BREAKER", "MANUAL", "POLICY_VIOLATION", "PURPOSE_MISMATCH", "TTL_EXPIRED", null],
+      "description": "PURPOSE_MISMATCH is raised when spend is detected against an appropriation_id not matching the wallet's purpose_classification"
     }
   }
 }

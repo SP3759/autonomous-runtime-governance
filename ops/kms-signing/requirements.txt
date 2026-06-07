@@ -1,0 +1,12 @@
+# Core — required for LocalECSigner
+cryptography>=42.0.0
+
+# Azure Key Vault (optional — only needed for AzureKeyVaultSigner)
+# azure-keyvault-keys>=4.9.0
+# azure-identity>=1.17.0
+
+# AWS KMS (optional — only needed for AWSKMSSigner)
+# boto3>=1.34.0
+
+# Dev / test
+pytest>=8.0.0

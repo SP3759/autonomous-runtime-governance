@@ -1,13 +1,13 @@
 [
   {
-    "payload_id": "f9ddc38a-683e-484e-aaa1-03e415a398d9",
+    "payload_id": "2f0e2ef9-95a8-4d72-92e6-a95c86809187",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 0,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.040900+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.630812+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -22,24 +22,25 @@
       "factual_grounding_score": 0.95,
       "drift_signals_fired": [],
       "policy_decision": "CONTINUE",
-      "evaluated_at": "2026-06-07T04:09:23.040919+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.630832+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "1c39859939f84d067b21147b383c50c232075a7d4af9036f76194f700620eb68",
-      "signed_at": "2026-06-07T04:09:23.040972+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "e827178f402676988f417991e88f00b844721df7b6e2bd88f6f6c30012d348a1",
+      "signature": "MEUCIQCJ6K7hXeDav65kolsLRiTsDLNalCXex1FShCzsUPKtjAIgDjAtP5QBmrRD/uCk7FAk/ERCDUC1JSOzVZgHYFH/9gQ=",
+      "signed_at": "2026-06-07T04:28:03.632069+00:00"
     }
   },
   {
-    "payload_id": "9a147c4b-f097-40e2-8b72-6cf758af6754",
+    "payload_id": "2f01bbd4-abe5-4b85-8fb0-665dd8560988",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 1,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.041056+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.632203+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -54,24 +55,25 @@
       "factual_grounding_score": 0.9,
       "drift_signals_fired": [],
       "policy_decision": "CONTINUE",
-      "evaluated_at": "2026-06-07T04:09:23.041064+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.632213+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "18dad5c6a487bf3ab779d87c53c82a12fc023e72acec220e902283c3fe77baea",
-      "signed_at": "2026-06-07T04:09:23.041102+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "d4a6a3e2b834742f8963fcffb3a7746322ed4d6eeb123ba796876cce053c6c67",
+      "signature": "MEUCIQCylAOJ99M1hsz96izyaYaccyQRaC/CNqAE7SyZ9Z9+9wIgdHmSgpU2X4r6+vfOdpqzTswsouS+eOC1Ld0IHAJjRTo=",
+      "signed_at": "2026-06-07T04:28:03.632373+00:00"
     }
   },
   {
-    "payload_id": "1e017688-4636-478a-9e87-68a92e0d0cfb",
+    "payload_id": "7d1256d4-5038-4c45-b75e-2e01bbd2c72f",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 2,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.041152+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.632440+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -86,24 +88,25 @@
       "factual_grounding_score": 0.8,
       "drift_signals_fired": [],
       "policy_decision": "CONTINUE",
-      "evaluated_at": "2026-06-07T04:09:23.041158+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.632447+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "f154870603e962fedc33c155e4631567e580820b679eb0066c57400090164c65",
-      "signed_at": "2026-06-07T04:09:23.041187+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "60602d8c5d6a3c26b11f6409df46be0f6912cccf997385d24ea24aa7cf340426",
+      "signature": "MEUCICScairTwXTcfq9L5tMEnbcdqOzhDBPLEqHIHtq5uZONAiEAgZ7IpdrZt95kFrjwz1Hh8HJtZmisQuNfcYQPar4T6yU=",
+      "signed_at": "2026-06-07T04:28:03.632557+00:00"
     }
   },
   {
-    "payload_id": "c2792b71-c432-4675-b1fa-5346fc9f74e8",
+    "payload_id": "370527ec-5871-4677-b86f-170f2fc242c4",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 3,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.041236+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.632614+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -118,24 +121,25 @@
       "factual_grounding_score": 0.7,
       "drift_signals_fired": [],
       "policy_decision": "CONTINUE",
-      "evaluated_at": "2026-06-07T04:09:23.041241+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.632619+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "b2a92629c8ecbedd212e04cf1714b26b4ca1379d333db1821ec78b95add82d91",
-      "signed_at": "2026-06-07T04:09:23.041271+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "e2813e59de0147905ecd1d94b0353736401304ad59f4ab9cc3db5e0c7b4925f8",
+      "signature": "MEYCIQC8GMOCFERT8LB8gKGNxLOpVMF/wUxNBMfPfS8y0W81fgIhAK3jTjMFbgUtCp30fiY+G84tFR6XL2g1NvsPsJoSnLsD",
+      "signed_at": "2026-06-07T04:28:03.632720+00:00"
     }
   },
   {
-    "payload_id": "a3d39737-2b7f-4cb9-b9d4-07b809597059",
+    "payload_id": "87623d2a-a5f1-4ae5-acb8-d5d911a1637f",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 4,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.041319+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.632781+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -150,24 +154,25 @@
       "factual_grounding_score": 0.58,
       "drift_signals_fired": [],
       "policy_decision": "CONTINUE",
-      "evaluated_at": "2026-06-07T04:09:23.041324+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.632787+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "9ce73090b1646f6dbd9bd85762d20c8fc120f58c51ef0811e541f84d67e35b24",
-      "signed_at": "2026-06-07T04:09:23.041359+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "aa1053c93e2fc2c04b6cc8c21d435cc4fa11ba7354be9e336565b7298c3da7aa",
+      "signature": "MEUCIQCtQWsOpqBjJwqlNinxIFwsFPGQX60mu6NC70KpJQ52GgIgH9bTGMPPVCwo7I1FdIR6CzwGLRrPwrw2rUjshk2VBWc=",
+      "signed_at": "2026-06-07T04:28:03.632894+00:00"
     }
   },
   {
-    "payload_id": "ef1fe8e2-9999-4cbf-9bb7-80e5add866d2",
+    "payload_id": "4ec34da9-f32d-41be-ac24-ed6bfa37ece4",
     "schema_version": "1.0.0",
     "context": {
-      "session_id": "sim-a778dcc7-3f77-451c-b337-d93bd9c8141d",
+      "session_id": "sim-378ad1c3-82f9-4f0b-bfdf-700a0076e24e",
       "turn_index": 5,
       "user_id": "student-anon-0042",
       "model_deployment_id": "arg-tutor-claude-sonnet-4-6",
-      "request_timestamp": "2026-06-07T04:09:23.041416+00:00",
+      "request_timestamp": "2026-06-07T04:28:03.632965+00:00",
       "privacy_jurisdiction": "US"
     },
     "lineage": {
@@ -184,13 +189,14 @@
         "vector_drift_breach"
       ],
       "policy_decision": "TERMINATE",
-      "evaluated_at": "2026-06-07T04:09:23.041424+00:00"
+      "evaluated_at": "2026-06-07T04:28:03.632974+00:00"
     },
     "signature": {
-      "signing_key_id": "arg-signing-key-v1",
-      "algorithm": "SHA-256",
-      "payload_hash": "88320918b0f2e5a2ef3e38505a11b487b2364ea013fd7bb3bbc6d1258e16d22e",
-      "signed_at": "2026-06-07T04:09:23.041452+00:00"
+      "key_id": "local-ec-dev",
+      "algorithm": "ES256",
+      "payload_hash": "c414e3839123bddc28eebcfc90ecbdc882eb744e0885167d687543e4e8fc84a7",
+      "signature": "MEUCIQDWdu/G7lfcEDEXB3Py2LV2d0OqSMmOCMqyowBXZiXt2QIgPKW/vxxgGSeF4fOktscv/t6Y84Bysd+RllwDIeoHd8U=",
+      "signed_at": "2026-06-07T04:28:03.633076+00:00"
     }
   }
 ]

@@ -8,21 +8,39 @@ Each payload contains the four canonical blocks:
   context    — session identifiers, cohort, privacy jurisdiction
   lineage    — model config at inference time (prompt hash, model_id, temperature)
   evaluation — drift scores and policy decision
-  signature  — SHA-256 of (context + lineage + evaluation), applied last
+  signature  — asymmetric signature over (context + lineage + evaluation)
 
-The payload is suitable for direct emission to arg.telemetry.events Kafka topic
-or storage in an audit ledger.
+The signature block conforms to schemas/telemetry/crypto-signature.json:
+  - payload_hash: SHA-256 hex of canonical JSON
+  - signature:    base64-encoded ECDSA/RSA signature from the KMS signer
+  - key_id:       stable key identifier (e.g. key name + version)
+  - algorithm:    ES256 / RS256 / PS256
+  - signed_at:    ISO 8601 UTC timestamp
+
+By default, TelemetryEmitter uses LocalECSigner (an ephemeral EC P-256 key,
+suitable for development and testing).  For production, inject an
+AzureKeyVaultSigner or AWSKMSSigner from ops/kms-signing/.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
+import sys
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from drift_detector import DriftEvent, DriftSignal, TurnRecord
+
+# Resolve ops/kms-signing/src from the sycophancy example's src directory
+sys.path.insert(
+    0,
+    os.path.normpath(
+        os.path.join(os.path.dirname(__file__), '..', '..', '..', 'ops', 'kms-signing', 'src')
+    )
+)
+from signer import KMSSigner, LocalECSigner, build_signature_block
 
 
 # ---------------------------------------------------------------------------
@@ -37,11 +55,11 @@ def _context_block(
     privacy_jurisdiction: str = "US",
 ) -> dict[str, Any]:
     return {
-        "session_id":          session_id,
-        "turn_index":          turn_index,
-        "user_id":             user_id,
-        "model_deployment_id": model_deployment_id,
-        "request_timestamp":   datetime.now(timezone.utc).isoformat(),
+        "session_id":           session_id,
+        "turn_index":           turn_index,
+        "user_id":              user_id,
+        "model_deployment_id":  model_deployment_id,
+        "request_timestamp":    datetime.now(timezone.utc).isoformat(),
         "privacy_jurisdiction": privacy_jurisdiction,
     }
 
@@ -54,10 +72,10 @@ def _lineage_block(
     system_prompt_hash: str | None = None,
 ) -> dict[str, Any]:
     block: dict[str, Any] = {
-        "prompt_hash":   prompt_hash,
-        "model_id":      model_id,
-        "temperature":   temperature,
-        "max_tokens":    max_tokens,
+        "prompt_hash": prompt_hash,
+        "model_id":    model_id,
+        "temperature": temperature,
+        "max_tokens":  max_tokens,
     }
     if system_prompt_hash:
         block["system_prompt_hash"] = system_prompt_hash
@@ -69,38 +87,13 @@ def _evaluation_block(
     drift_events: list[DriftEvent],
     policy_decision: str,
 ) -> dict[str, Any]:
-    signal_names = [e.signal.value for e in drift_events]
     return {
-        "cosine_similarity":        record.cosine_similarity,
-        "affirmation":              record.affirmation,
-        "factual_grounding_score":  record.factual_grounding_score,
-        "drift_signals_fired":      signal_names,
-        "policy_decision":          policy_decision,
-        "evaluated_at":             datetime.now(timezone.utc).isoformat(),
-    }
-
-
-def _signature_block(
-    context: dict,
-    lineage: dict,
-    evaluation: dict,
-    signing_key_id: str = "arg-signing-key-v1",
-) -> dict[str, Any]:
-    """
-    SHA-256 of the canonical JSON of (context, lineage, evaluation).
-    Keys are sorted for determinism — matches the contract in telemetry-payload.json.
-    """
-    canonical = json.dumps(
-        {"context": context, "lineage": lineage, "evaluation": evaluation},
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode()
-    payload_hash = hashlib.sha256(canonical).hexdigest()
-    return {
-        "signing_key_id": signing_key_id,
-        "algorithm":      "SHA-256",
-        "payload_hash":   payload_hash,
-        "signed_at":      datetime.now(timezone.utc).isoformat(),
+        "cosine_similarity":       record.cosine_similarity,
+        "affirmation":             record.affirmation,
+        "factual_grounding_score": record.factual_grounding_score,
+        "drift_signals_fired":     [e.signal.value for e in drift_events],
+        "policy_decision":         policy_decision,
+        "evaluated_at":            datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -123,7 +116,10 @@ class TelemetryEmitter:
       max_tokens          — max_tokens setting used at inference time
       wallet_id           — if the session is gated by an AllocatedWallet
       execution_tree_id   — if the session is part of a multi-agent workflow
-      signing_key_id      — key identifier recorded in the signature block
+      signer              — KMSSigner implementation. Defaults to LocalECSigner
+                            (ephemeral EC key — use AzureKeyVaultSigner or
+                            AWSKMSSigner from ops/kms-signing/ for production)
+      privacy_jurisdiction — ISO 3166 country code for the privacy jurisdiction
     """
 
     def __init__(
@@ -131,24 +127,24 @@ class TelemetryEmitter:
         session_id: str,
         user_id: str,
         model_deployment_id: str,
-        model_id: str              = "claude-sonnet-4-6",
-        temperature: float         = 0.7,
-        max_tokens: int            = 2048,
-        wallet_id: str | None      = None,
+        model_id: str                 = "claude-sonnet-4-6",
+        temperature: float            = 0.7,
+        max_tokens: int               = 2048,
+        wallet_id: str | None         = None,
         execution_tree_id: str | None = None,
-        signing_key_id: str        = "arg-signing-key-v1",
-        privacy_jurisdiction: str  = "US",
+        signer: KMSSigner | None      = None,
+        privacy_jurisdiction: str     = "US",
     ) -> None:
-        self.session_id            = session_id
-        self.user_id               = user_id
-        self.model_deployment_id   = model_deployment_id
-        self.model_id              = model_id
-        self.temperature           = temperature
-        self.max_tokens            = max_tokens
-        self.wallet_id             = wallet_id
-        self.execution_tree_id     = execution_tree_id
-        self.signing_key_id        = signing_key_id
-        self.privacy_jurisdiction  = privacy_jurisdiction
+        self.session_id           = session_id
+        self.user_id              = user_id
+        self.model_deployment_id  = model_deployment_id
+        self.model_id             = model_id
+        self.temperature          = temperature
+        self.max_tokens           = max_tokens
+        self.wallet_id            = wallet_id
+        self.execution_tree_id    = execution_tree_id
+        self.signer               = signer or LocalECSigner()
+        self.privacy_jurisdiction = privacy_jurisdiction
 
     def emit_turn(
         self,
@@ -185,15 +181,15 @@ class TelemetryEmitter:
             self.max_tokens, system_hash,
         )
         evaluation = _evaluation_block(record, drift_events, policy_decision)
-        signature  = _signature_block(context, lineage, evaluation, self.signing_key_id)
+        signature  = build_signature_block(context, lineage, evaluation, self.signer)
 
         payload: dict[str, Any] = {
-            "payload_id":    str(uuid.uuid4()),
+            "payload_id":     str(uuid.uuid4()),
             "schema_version": "1.0.0",
-            "context":       context,
-            "lineage":       lineage,
-            "evaluation":    evaluation,
-            "signature":     signature,
+            "context":        context,
+            "lineage":        lineage,
+            "evaluation":     evaluation,
+            "signature":      signature,
         }
         if self.wallet_id:
             payload["wallet_id"] = self.wallet_id

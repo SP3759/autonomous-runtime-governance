@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arg:telemetry:payload:1.0.0",
+  "title": "ARG Telemetry Payload",
+  "version": "1.0.0",
+  "description": "Root envelope that combines all four immutable telemetry blocks into a single signed audit record. One payload is produced per inference turn. The signature covers the content blocks (context + lineage + evaluation); the signed record is the unit of the audit ledger.\n\nBlock assembly order:\n  1. context  — session identifiers and geography, populated at request time\n  2. lineage  — prompt hash, model ID, temperature, populated before inference\n  3. evaluation — drift scores and policy decision, populated after inference\n  4. signature — hash of blocks 1-3, applied by the enforcement gate before emit",
+  "type": "object",
+  "required": [
+    "payload_id",
+    "schema_version",
+    "context",
+    "lineage",
+    "evaluation",
+    "signature"
+  ],
+  "properties": {
+    "payload_id": {
+      "type": "string",
+      "description": "Unique identifier for this telemetry payload. Used as the primary key in the audit ledger.",
+      "format": "uuid"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Version of this envelope schema. Increment the minor version for backwards-compatible field additions; increment the major version for breaking changes.",
+      "enum": ["1.0.0"],
+      "default": "1.0.0"
+    },
+    "context": {
+      "$ref": "context-block.json",
+      "description": "Session identifiers, cohort data, and privacy jurisdiction. Populated at request time before inference."
+    },
+    "lineage": {
+      "$ref": "lineage-block.json",
+      "description": "Deterministic record of model configuration at inference time. Enables forensic reconstruction of any turn."
+    },
+    "evaluation": {
+      "$ref": "evaluation-block.json",
+      "description": "Drift scores, guardrail distances, and policy decision from the Orchestration Layer. Populated after inference completes."
+    },
+    "signature": {
+      "$ref": "crypto-signature.json",
+      "description": "Cryptographic signature of the assembled payload (context + lineage + evaluation). Applied by the enforcement gate. The payload_hash in this block must equal SHA-256(canonical_json(context, lineage, evaluation))."
+    },
+    "wallet_id": {
+      "type": ["string", "null"],
+      "description": "If this turn was gated by an allocated wallet, the wallet_id links this telemetry record to the corresponding financial governance event stream.",
+      "format": "uuid"
+    },
+    "execution_tree_id": {
+      "type": ["string", "null"],
+      "description": "Agent execution tree this turn belongs to. Present when the turn is part of a multi-agent workflow.",
+      "format": "uuid"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "payload_hash_note": {
+      "description": "The payload_hash in the signature block must be computed as: SHA-256(JSON.stringify({context, lineage, evaluation}, sorted_keys)). The envelope fields payload_id, schema_version, wallet_id, and execution_tree_id are NOT included in the hash — only the three content blocks are signed."
+    }
+  }
+}

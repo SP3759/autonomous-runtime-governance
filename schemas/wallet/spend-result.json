@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arg:wallet:spend-result:1.0.0",
+  "title": "ARG Wallet Spend Result",
+  "version": "1.0.0",
+  "description": "The response returned by AllocatedWallet.request_spend() and FinancialCircuitBreaker.request_spend(). The caller must inspect approved before making any API call — the call must not proceed if approved is false.\n\nThis schema documents the SpendResult Pydantic model in wallet.py. Every field here maps 1:1 to a field on that class.\n\nContract:\n  - If approved=true: tokens have already been decremented from the wallet. The caller may proceed.\n  - If approved=false: no tokens were decremented. The denial_reason identifies which control blocked the call.",
+  "type": "object",
+  "required": [
+    "approved",
+    "wallet_id"
+  ],
+  "properties": {
+    "approved": {
+      "type": "boolean",
+      "description": "Whether the spend request was approved. The caller must not make the API call if this is false."
+    },
+    "wallet_id": {
+      "type": "string",
+      "description": "The wallet that evaluated this request.",
+      "format": "uuid"
+    },
+    "denial_reason": {
+      "type": ["string", "null"],
+      "description": "Machine-readable reason code when approved=false. Null when approved=true.",
+      "enum": [
+        "WALLET_REVOKED",
+        "WALLET_EXHAUSTED",
+        "WALLET_EXPIRED",
+        "BURST_RESERVE_PENDING_APPROVAL",
+        "MISSION_BUDGET_EXHAUSTED",
+        "MISSION_BUDGET_EXHAUSTED_BURST_RESERVE_AVAILABLE",
+        "CIRCUIT_BREAKER_OPEN",
+        null
+      ],
+      "x-pattern-values": [
+        "OPERATION_BUDGET_EXHAUSTED:{operation_type}",
+        "CIRCUIT_BREAKER_FIRED:{trigger_signal}"
+      ]
+    },
+    "tokens_approved": {
+      "type": ["integer", "null"],
+      "description": "Number of tokens approved and decremented. Non-null only when approved=true.",
+      "minimum": 0
+    },
+    "cost_approved_usd": {
+      "type": ["number", "null"],
+      "description": "Cost in USD approved and decremented. Non-null only when approved=true.",
+      "minimum": 0.0
+    },
+    "operation_type": {
+      "type": ["string", "null"],
+      "description": "The operation type that was requested. Present when an operation wallet was checked.",
+      "enum": [
+        "llm_inference",
+        "web_search",
+        "code_execution",
+        "database_query",
+        "external_api",
+        "file_io",
+        "sub_agent_delegation",
+        "other",
+        null
+      ]
+    },
+    "tokens_remaining": {
+      "type": ["integer", "null"],
+      "description": "Remaining tokens in the relevant wallet (mission or operation) at the time of denial. Present when approved=false to aid in escalation decisions.",
+      "minimum": 0
+    },
+    "burst_reserve_available": {
+      "type": ["integer", "null"],
+      "description": "Number of burst reserve tokens available when denial_reason=MISSION_BUDGET_EXHAUSTED_BURST_RESERVE_AVAILABLE. Signals to the caller that escalation to release_burst_reserve() is possible.",
+      "minimum": 0
+    },
+    "mission_utilization_percent": {
+      "type": ["number", "null"],
+      "description": "Mission wallet utilization at the time of this response. Present when approved=true. Used by the circuit breaker for threshold monitoring.",
+      "minimum": 0.0,
+      "maximum": 100.0
+    },
+    "warn_threshold_crossed": {
+      "type": "boolean",
+      "description": "True when mission utilization crossed 75% on this specific call. The circuit breaker uses this to emit a WALLET_WARN_THRESHOLD event.",
+      "default": false
+    },
+    "critical_threshold_crossed": {
+      "type": "boolean",
+      "description": "True when mission utilization crossed 90% on this specific call. The circuit breaker uses this to emit a WALLET_CRITICAL_THRESHOLD event.",
+      "default": false
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "properties": { "approved": { "const": true } }
+  },
+  "then": {
+    "required": ["tokens_approved", "cost_approved_usd"],
+    "properties": {
+      "denial_reason": { "type": "null" }
+    }
+  },
+  "else": {
+    "required": ["denial_reason"],
+    "properties": {
+      "tokens_approved": { "type": "null" },
+      "cost_approved_usd": { "type": "null" }
+    }
+  }
+}

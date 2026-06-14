@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Ephemeral Attestation Token",
+  "description": "Single-use, short-lived authorization token minted by the ARG Identity Proxy for a specific execution tree node. Self-destructs after the sub-task payload is returned.",
+  "type": "object",
+  "required": ["token_id", "node_id", "lineage_id", "purpose_classification_hash", "allowed_endpoints", "issued_at", "expires_at"],
+  "properties": {
+    "token_id": {
+      "type": "string",
+      "description": "Unique identifier for this ephemeral token",
+      "format": "uuid"
+    },
+    "node_id": {
+      "type": "string",
+      "description": "Execution tree node this token is bound to",
+      "format": "uuid"
+    },
+    "lineage_id": {
+      "type": "string",
+      "description": "Identity lineage chain this token belongs to",
+      "format": "uuid"
+    },
+    "purpose_classification_hash": {
+      "type": "string",
+      "description": "Hash binding this token to its authorized purpose. Token is revoked if execution intent deviates.",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "allowed_endpoints": {
+      "type": "array",
+      "description": "Exact endpoints this token is authorized to call. No others.",
+      "items": {
+        "type": "object",
+        "required": ["url_pattern", "methods"],
+        "properties": {
+          "url_pattern": { "type": "string" },
+          "methods": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] }
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "CONSUMED", "REVOKED", "EXPIRED"],
+      "default": "ACTIVE"
+    },
+    "revocation_reason": {
+      "type": ["string", "null"],
+      "enum": ["SEMANTIC_DRIFT", "LINEAGE_BREAK", "INTENT_DEVIATION", "MANUAL", "TTL_EXPIRED", null]
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "description": "Token self-destructs at this timestamp regardless of task completion",
+      "format": "date-time"
+    },
+    "consumed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  }
+}

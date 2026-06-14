@@ -1,0 +1,65 @@
+# ARG Impersonation Gate Configuration
+# Proxy sidecar that intercepts all outbound agent requests and validates
+# identity lineage, semantic context, and ephemeral token attestation
+# before allowing execution to proceed.
+
+impersonation_gate:
+  name: "arg-identity-proxy"
+  enabled: true
+
+  # Intercept all outbound agent requests
+  intercept:
+    all_outbound: true
+    # Endpoints exempt from interception (internal health checks etc)
+    exempt_patterns:
+      - "/health"
+      - "/metrics"
+
+  # Identity lineage validation
+  lineage_validation:
+    enabled: true
+    # Reject requests where parent-child chain cannot be cryptographically verified
+    require_verified_ancestry: true
+    # Maximum execution tree depth before automatic escalation review
+    max_depth: 5
+    on_lineage_break:
+      - revoke_ephemeral_token
+      - terminate_node
+      - emit_lineage_break_event
+      - log_to_audit_ledger
+
+  # Semantic context matching
+  semantic_validation:
+    enabled: true
+    # Similarity threshold below which a request is flagged as semantic drift
+    context_similarity_threshold: 0.80
+    # Compare live API call intent against original prompt semantic hash
+    compare_against: "initialization_semantic_context_hash"
+    on_semantic_drift:
+      - revoke_ephemeral_token
+      - emit_semantic_drift_event
+      - log_to_audit_ledger
+
+  # Ephemeral token enforcement
+  token_enforcement:
+    enabled: true
+    # Tokens are single-use. Consumed immediately on successful sub-task completion.
+    single_use: true
+    # Reject any request presenting a previously consumed or expired token
+    reject_replayed_tokens: true
+    on_invalid_token:
+      - block_request
+      - emit_invalid_token_event
+      - log_to_audit_ledger
+
+  # Probabilistic Access Control
+  probabilistic_access_control:
+    enabled: true
+    # Validate execution intent aligns with purpose classification hash
+    validate_purpose_alignment: true
+    # Validate spend is authorized against correct appropriation code
+    validate_appropriation_code: true
+    on_intent_deviation:
+      - revoke_ephemeral_token
+      - emit_intent_deviation_event
+      - log_full_execution_context_to_audit_ledger

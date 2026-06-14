@@ -1,0 +1,39 @@
+# ARG Lineage Attestation Configuration
+# Cryptographic verification handlers for parent-child chain of custody
+# across the full agent execution tree
+
+lineage_attestation:
+  name: "arg-lineage-attestation"
+  enabled: true
+
+  # Cryptographic chain verification
+  chain_verification:
+    algorithm: "SHA-256"
+    # Each node hash must include parent node hash creating an immutable chain
+    require_parent_hash_inclusion: true
+    # Verify chain from root human principal to current node on every request
+    verify_full_chain: true
+
+  # Root principal verification
+  root_principal:
+    # Validate original human authorization is still valid
+    validate_session_active: true
+    # Maximum age of root authorization before re-verification required
+    max_authorization_age_seconds: 3600
+
+  # Node registration
+  node_registration:
+    # All agent nodes must register with lineage service before execution
+    require_registration: true
+    # Node must declare full scope and intent at registration time
+    require_scope_declaration: true
+    # Scope cannot be expanded after registration
+    allow_scope_expansion: false
+
+  # Audit
+  audit:
+    # Log all lineage events to the tamper-proof telemetry pipeline
+    log_all_events: true
+    # Include full execution context with every lineage event
+    include_execution_context: true
+    streaming_destination: "arg.identity.lineage.events"

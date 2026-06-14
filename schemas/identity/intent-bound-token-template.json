@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Intent-Bound Token Template",
+  "description": "Template for minting ephemeral authorization scopes tied to purpose classification hashes. Ensures every token carries the intent that authorized it.",
+  "type": "object",
+  "required": ["template_id", "purpose_classification", "scope_constraints", "ttl_seconds"],
+  "properties": {
+    "template_id": {
+      "type": "string",
+      "description": "Identifier for this token template",
+      "format": "uuid"
+    },
+    "purpose_classification": {
+      "type": "object",
+      "description": "Defines the authorized intent this template binds tokens to",
+      "required": ["classification_id", "description", "appropriation_code"],
+      "properties": {
+        "classification_id": {
+          "type": "string",
+          "description": "Unique identifier for this purpose classification"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the authorized purpose"
+        },
+        "appropriation_code": {
+          "type": "string",
+          "description": "Cost center or appropriation code this token spend is authorized against. Solves the color of money problem."
+        },
+        "semantic_boundary_hash": {
+          "type": "string",
+          "description": "Hash of the semantic boundary defining what actions are in scope for this purpose",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "scope_constraints": {
+      "type": "object",
+      "description": "Hard boundaries on what a token minted from this template can do",
+      "properties": {
+        "allowed_endpoint_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "blocked_endpoint_patterns": {
+          "type": "array",
+          "description": "Explicit block list. Takes precedence over allowed patterns.",
+          "items": { "type": "string" }
+        },
+        "max_downstream_depth": {
+          "type": "integer",
+          "description": "Maximum depth of child agent spawning permitted under this token",
+          "minimum": 1,
+          "default": 3
+        },
+        "data_classification_ceiling": {
+          "type": "string",
+          "description": "Maximum data sensitivity level this token may access",
+          "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
+        }
+      }
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "description": "Token lifetime in seconds from minting. Token self-destructs after this window.",
+      "minimum": 1,
+      "maximum": 3600
+    }
+  }
+}

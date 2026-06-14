@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ARG Identity Lineage Schema",
+  "description": "Tracks cryptographic parent-child execution ancestry across the full agent execution tree",
+  "type": "object",
+  "required": ["lineage_id", "root_human_principal", "execution_chain", "created_at"],
+  "properties": {
+    "lineage_id": {
+      "type": "string",
+      "description": "Unique identifier for this execution lineage chain",
+      "format": "uuid"
+    },
+    "root_human_principal": {
+      "type": "object",
+      "description": "The human user who initiated the original request",
+      "required": ["principal_id", "authorized_scope", "authorized_at"],
+      "properties": {
+        "principal_id": {
+          "type": "string",
+          "description": "Unique identifier of the originating human principal"
+        },
+        "authorized_scope": {
+          "type": "array",
+          "description": "Explicit list of actions the human principal authorized",
+          "items": { "type": "string" }
+        },
+        "authorized_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "execution_chain": {
+      "type": "array",
+      "description": "Ordered chain of agent nodes in the execution tree",
+      "items": {
+        "type": "object",
+        "required": ["node_id", "parent_node_id", "agent_type", "scope_at_initialization", "node_hash"],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parent_node_id": {
+            "type": ["string", "null"],
+            "description": "Parent node ID. Null for root agent only.",
+            "format": "uuid"
+          },
+          "agent_type": {
+            "type": "string",
+            "description": "Type of agent at this node"
+          },
+          "scope_at_initialization": {
+            "type": "object",
+            "description": "Exact scope and intent declared at the moment this node was initialized",
+            "properties": {
+              "purpose_classification": {
+                "type": "string",
+                "description": "Purpose hash binding this node to its authorized intent"
+              },
+              "allowed_endpoints": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "semantic_context_hash": {
+                "type": "string",
+                "description": "Hash of the semantic context at initialization for drift detection"
+              }
+            }
+          },
+          "node_hash": {
+            "type": "string",
+            "description": "SHA-256 hash of this node including parent hash, creating an immutable chain",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "COMPLETED", "TERMINATED", "REVOKED"]
+          }
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

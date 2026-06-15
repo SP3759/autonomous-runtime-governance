@@ -6,36 +6,40 @@ ARG is an open source reference architecture for governing autonomous AI agents 
 
 ## The Problem
 
-Most AI governance frameworks are static. A policy PDF. A system prompt. An annual audit. None of these can intercept a live data payload, catch a sycophancy loop across fifteen session turns, or stop an autonomous agent from burning through a cloud budget while your team sleeps.
+Most AI governance frameworks are static. A policy PDF. A system prompt. An annual audit. None of these can intercept a live data payload, catch a sycophancy loop across fifteen session turns, stop an autonomous agent from burning through a cloud budget while your team sleeps, or prevent non-delegated privilege escalation across a multi-agent execution chain.
 
 ARG treats governance as a runtime engineering constraint, not a documentation exercise.
 
-## The Three-Layer Architecture
+## The Four-Layer Architecture
 
-ARG is built on a decoupled three-layer model:
+ARG is built on a decoupled four-layer model:
 
 ```
 Policy Layer        → Defines legal boundaries, risk thresholds, and compliance mandates
 Orchestration Layer → Translates policy into automated runtime gates based on real-time context
 Enforcement Layer   → Executes deterministic binary decisions at sub-millisecond speed
+Identity Layer      → Tracks cryptographic execution lineage and prevents non-delegated privilege escalation
 ```
 
 ## Repository Structure
 
 ```
 autonomous-runtime-governance/
-├── docs/                    Architecture and layer documentation
+├── docs/                         Architecture and layer documentation
 ├── schemas/
-│   ├── telemetry/           Four-block immutable telemetry schema
-│   └── wallet/              Allocated Wallet Architecture schemas
+│   ├── telemetry/                Four-block immutable telemetry schema
+│   ├── wallet/                   Allocated Wallet Architecture schemas
+│   └── identity/                 Identity lineage, ephemeral tokens, intent-bound templates
 ├── config/
-│   ├── sidecar-proxy/       Kafka and Event Hubs pipeline configuration
-│   └── circuit-breaker/     Financial and drift detection circuit breakers
+│   ├── sidecar-proxy/            Kafka and Event Hubs pipeline configuration
+│   ├── circuit-breaker/          Financial and drift detection circuit breakers
+│   └── identity/                 Impersonation gate and lineage attestation configuration
 ├── examples/
 │   ├── sycophancy-loop-detection/
 │   ├── wallet-architecture/
-│   └── financial-circuit-breaker/
-└── community/               Contributing guidelines and code of conduct
+│   ├── financial-circuit-breaker/
+│   └── identity-lineage-collapse/
+└── community/                    Contributing guidelines and code of conduct
 ```
 
 ## Article Series

@@ -49,7 +49,8 @@ This framework is the technical companion to the AI Governance Blueprint series:
 - [Part 1: The Three-Layer Runtime Architecture](https://www.linkedin.com/pulse/ai-governance-blueprint-part-1-illusion-safe-prompt-palaniyandi-wiw1c/)
 - [Part 2: The Auditability Pipeline](https://www.linkedin.com/pulse/ai-governance-blueprint-part-2-auditability-pipeline-palaniyandi-yrd7c/)
 - [Part 3: Financial Governance](https://www.linkedin.com/pulse/ai-governance-blueprint-part-3-financial-saravanan-palaniyandi-vixec/)
-- Part 4: Identity and Access Governance (coming soon)
+- [Part 4: Identity and Access Governance] (https://www.linkedin.com/pulse/ai-governance-blueprint-part-4-identity-access-saravanan-palaniyandi-dtfnc/)
+- 
 
 ## Getting Started
 
